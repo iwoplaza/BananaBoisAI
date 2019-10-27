@@ -13,7 +13,7 @@ class DescriptionGenerator:
             'looks fancy', 'is pretty functional', 'is very useful', 
             'is nice', 'seems nice', 
             'looks good', 'improves your social status', 'is an inspiration for your friends', 
-            'is making a difference', 'gives you a <strong>new perspective</strong>', 'has been around for longer than you think', 
+            'really makes a difference', 'gives you a <strong>new perspective</strong>', 'has been around for longer than you think', 
             'has a cool color', 'gives a new look to the room', 'makes your area <strong>bigger</strong>',
             'never lets you down', 'will <strong>change your life</strong>', "is unique in it's design", 'is <strong>free</strong>'
         ]
