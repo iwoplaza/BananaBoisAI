@@ -1,92 +1,145 @@
 import random
 
-global_adjectives = [
-    'looks fancy', 'is pretty functional', 'is very useful', 
-    'is nice', 'is passable', 'looks fine', 'seems nice', 
-    'looking good', 'improves your status', 'is an inspiration for your friends', 
-    'is making a difference', 'gives you a new perspective', 'lived more than you think', 
-    'has cool color', 'gives a new look to the room', 'makes your area bigger',
-    'never let you down', 'will change your life'
-]
-
-adjectives = {
-    'bed':      [ 'is very comfortable' ],
-    'bed' : [ "could make your mornings comfortable" ],
-    'chair':    [ "feels like it's been taken straight out of your grandmas house" ],
-    'chair':    [   "was approved by the president of the United States" ],
-    'coffee table': [ "makes your coffee better" ],
-    'fireplace' : [ "warms your heart" ],
-    'floor' : [ "is making you stay on the ground" ],
-    'real estate': [ "is free" ],
-    'toilet' : [ "makes you shit with ease" ],
-    'tree' : [ "is just hanging around" ],
-    'couch' : [ "makes you relax in the afternoon" ],
-    'window' : [ "gives you a new view" ],
-    'window' : [ "...always better than apple" ],
-    'shower': [ "helps you to get up everyday"],
-    'mattress': [ "will make you fall asleep right away" ],
-    'nightstand': [ "will help you survive a night" ]
-}
-
-labels = {
-    'bed': 'bed',
-    'chair': 'chair'
-}
-
-prefixes = [
-    '. The',
-]
-
-connector_prefixes = [
-    ', and the',
-    ', the'
-]
-
-fancy_prefixes = [
-    '. Furthermore, the',
-    '. On top of that, the',
-]
-
 def getRandomChoice(src):
     return src[random.choice(range(len(src)))]
 
 def popRandomChoice(src):
     return src.pop(random.choice(range(len(src))))
 
-def getPrefix(statement_index = 0):
-    if statement_index > 0 and random.random() < 0.1 and len(fancy_prefixes) != 0:
-        return popRandomChoice(fancy_prefixes)
-    elif statement_index > 0 and random.random() < 0.5:
-        return getRandomChoice(connector_prefixes)
-    else:
-        return getRandomChoice(prefixes)
+class DescriptionGenerator:
 
-def getAdjective(noun):
-    totalAdjs = len(global_adjectives + (adjectives[noun] if noun in adjectives else []))
+    def __init__(self):
+        self.global_adjectives_positive = [
+            'looks fancy', 'is pretty functional', 'is very useful', 
+            'is nice', 'seems nice', 
+            'looks good', 'improves your social status', 'is an inspiration for your friends', 
+            'is making a difference', 'gives you a new perspective', 'has been around for longer than you think', 
+            'has a cool color', 'gives a new look to the room', 'makes your area bigger',
+            'never lets you down', 'will change your life', "is unique in it's design", 'is free'
+        ]
 
-    if totalAdjs == 0:
-        return 'is good'
-    else:
-        weight = len(global_adjectives) / totalAdjs
+        self.global_adjectives_neutral = [
+            'is passable', 'looks fine'
+        ]
 
-        pool = global_adjectives if random.random() <= weight else adjectives[noun]
-        return popRandomChoice(pool)
+        self.global_adjectives_negative = [
+            'is underwhelming', 'has seen better days', 'is barely holding form'
+        ]
 
-def generateDescription(topics):
-    random.shuffle(topics)
+        self.adjectives_positive = {
+            'bed':          [ 'is very comfortable', 'could make your mornings comfortable' ],
+            'chair':        [ "was approved by the president of the United States" ],
+            'coffee table': [ "makes your coffee better" ],
+            'fireplace' :   [ "warms your heart" ],
+            'floor' :       [ ],
+            'real estate':  [ "is free" ],
+            'toilet' :      [ ],
+            'tree' :        [ ],
+            'couch' :       [ "makes you relax in the afternoon" ],
+            'window' :      [ "gives you a new view", "...always better than apple" ],
+            'shower':       [ "helps you to get up everyday"],
+            'mattress':     [ "will make you fall asleep right away" ],
+            'nightstand':   [ ]
+        }
 
-    description = ''
-    index = 0
-    for topic in topics:
-        prefix = getPrefix(index > 0)
+        self.adjectives_neutral = {
+            'bed':          [ ],
+            'chair':        [ "feels like it's been taken straight out of your grandmas house" ],
+            'coffee table': [ ],
+            'fireplace' :   [ ],
+            'floor' :       [ "is making you stay on the ground" ],
+            'real estate':  [ ],
+            'toilet' :      [ ],
+            'tree' :        [ "is just hanging around" ],
+            'couch' :       [ ],
+            'window' :      [ ],
+            'shower':       [ ],
+            'mattress':     [ ],
+            'nightstand':   [ "will help you survive a night" ]
+        }
 
-        topic = topic.lower()
-        sentence = f'{prefix} {labels[topic] if topic in labels else topic} {getAdjective(topic)}'
+        self.adjectives_negative = {
+            'bed':          [ 'feels soggy and hard at the same time' ],
+            'coffee table': [ ],
+            'fireplace' :   [ 'is a fire hazard waiting to happen' ],
+            'floor' :       [ "doesn't look like something that should be able to support anyone's weight" ],
+            'real estate':  [ ],
+            'toilet' :      [ ],
+            'tree' :        [ ],
+            'couch' :       [ ],
+            'window' :      [ ],
+            'shower':       [ ],
+            'mattress':     [ ],
+            'nightstand':   [ ]
+        }
 
-        description = description + sentence
+        self.labels = {
+            'bed': 'bed',
+            'chair': 'chair'
+        }
 
-        index = index + 1
-    return description[2:]
+        self.prefixes = [
+            '. The',
+            '. The',
+            '. The',
+            '. The',
+            '! The',
+        ]
+
+        self.connector_prefixes = [
+            ', and the',
+            ', the'
+        ]
+
+        self.fancy_prefixes = [
+            '. Furthermore, the',
+            '. On top of that, the',
+            '. Oh, and the'
+        ]
+
+    def getPrefix(self, statement_index = 0):
+        if statement_index > 0 and random.random() < 0.1 and len(self.fancy_prefixes) != 0:
+            return popRandomChoice(self.fancy_prefixes)
+        elif statement_index > 0 and random.random() < 0.5:
+            return getRandomChoice(self.connector_prefixes)
+        else:
+            return getRandomChoice(self.prefixes)
+
+    def getGlobalAdjectivePool(self, score):
+        return self.global_adjectives_positive if score > 0.7 else self.global_adjectives_neutral if score > 0.3 else self.global_adjectives_negative
+
+    def getAdjectivePool(self, score):
+        return self.adjectives_positive if score > 0.7 else self.adjectives_neutral if score > 0.3 else self.adjectives_negative
+
+    def getAdjective(self, noun, score = 0.5):
+        global_adjectives = self.getGlobalAdjectivePool(score)
+        adjectives = self.getAdjectivePool(score)
+        totalAdjs = len(global_adjectives + (adjectives[noun] if noun in adjectives else []))
+
+        if totalAdjs == 0:
+            return 'is good'
+        else:
+            weight = len(global_adjectives) / totalAdjs
+
+            pool = global_adjectives if random.random() <= weight else adjectives[noun]
+            return popRandomChoice(pool)
+
+    def generate(self, topics):
+        random.shuffle(topics)
+
+        description = ''
+        index = 0
+        for (topic, score) in topics:
+            prefix = self.getPrefix(index > 0)
+
+            topic = topic.lower()
+            sentence = f'{prefix} {self.labels[topic] if topic in self.labels else topic} {self.getAdjective(topic, score)}'
+
+            description = description + sentence
+
+            index = index + 1
+        return description[2:]
 
 if __name__ == '__main__':
-    print(generateDescription([ 'bed', 'chair', 'table' ]))
+    generator = DescriptionGenerator()
+    print(generator.generate([ 'bed', 'chair', 'table' ]))

@@ -21,16 +21,13 @@ import os
 import json
 
 from htmltemplater import HTMLTemplater
-from description_generator import generateDescription
-from PyPDF2 import PdfFileMerger
+from description_generator import DescriptionGenerator
 import pdfkit
 
 class Room:
-    image_dir = ""
-    
-    # konstruktor - określa jakie labele kategoryzują dane zdjęcie (HTML)
-    def __init__(self, index, image_path, json_data, templater):
+    def __init__(self, index, room_type, image_path, json_data, templater):
         self.index = index
+        self.room_type = room_type
         self.image_path = image_path
         self.json_data = json_data
         self.templater = templater
@@ -38,8 +35,9 @@ class Room:
         self.tags = [key for (key, value) in json_data]
         
     def fillSheet(self):
-        # self.worksheet['F4'] = self.room_type
+
         # ''' , roomAverageScore '''
+        description_generator = DescriptionGenerator()
 
         self.templater.replace({
             f'room_{self.index}': f'''
@@ -49,74 +47,75 @@ class Room:
                 </section>
                 <!-- model-replace: room_{self.index + 1} -->
             ''',
-            f'description_{self.index}': generateDescription(self.tags),
+            f'description_{self.index}': description_generator.generate(self.json_data),
             'tags': ', '.join(self.tags),
             'floor-area': random.randint(7, 30),
         })
 
         self.templater.replaceImage(f'picture-src_{self.index}', self.image_path)
+
+
+def loadRoomFromJSON(json_path, index, room_type, image_path, templater):
+    with open(json_path) as json_file:
+        json_data = json.load(json_file)
+        json_data = [(entry['name'], entry['score']) for entry in json_data]
         
+        return Room(index, room_type, image_path, json_data, templater)
 
-    def mergePDF(self, fin_report_path, fin_report_name, *pdf_files):
-        merger = PdfFileMerger()
-        for pdf_file in pdf_files:
-            merger.append(fin_report_path + pdf_file)
-        if not os.path.exists(fin_report_path + fin_report_name):
-            merger.write(fin_report_path + fin_report_name)
-        merger.close()
+def generatePDFs(glob_pattern, out_dir, path_to_lib, out_format = 'pdf'):
+    test_paths = glob(glob_pattern)
+    config = pdfkit.configuration(wkhtmltopdf=path_to_lib)
 
+    for test_path in test_paths:
+        summary_path = path.join(test_path, 'summary.txt')
 
-testPath = glob('test*')
- 
-config = pdfkit.configuration(wkhtmltopdf='C:\\Program Files\\wkhtmltopdf\\bin\\wkhtmltopdf.exe')
+        if not path.isfile(summary_path):
+            continue
 
-templater = HTMLTemplater('template.html', config=config)
+        templater = HTMLTemplater('template.html', config=config)
 
-for test in testPath:
-    summary_path = path.join(test, 'summary.txt')
+        with open(summary_path, 'r') as summary_file:
+            summary = summary_file.read()
+            data = [row.split(', ') for row in summary.splitlines()]
 
-    with open(summary_path, 'r') as summary_file:
-        summary = summary_file.read()
-        data = [x.split(', ') for x in summary.splitlines()]
+            index = 0
+            for (image_filename, room_type) in data:
+                json_filename = f'{image_filename}.json'
+                json_path = path.join(test_path, json_filename)
 
-        # start merge
-        index = 0
-        for (image_filename, room_class) in data:
-            json_filename = image_filename + '.json'
-            json_path = path.join(test, json_filename)
-
-            # load json
-            with open(json_path) as json_file:
-                json_data = json.load(json_file)
-                json_data = [(entry['name'], entry['score']) for entry in json_data]
-                
-                room = Room(index, path.join(test, image_filename), json_data, templater)
+                # load json
+                room = loadRoomFromJSON(json_path, index, room_type, path.join(test_path, image_filename), templater)
                 room.fillSheet()
 
-            index = index + 1
-
-with open("myfile.html", "w") as file1: 
-  
-    file1.write(templater.template) 
-
-templater.save('out.pdf')
-
-
-# with open(csvPath) as csv_file:
-#     csv_reader = csv.reader(csv_file, delimiter = ',')
-
-#     workbook = HTMLTemplater('template.html')
-
-#     header = None
-#     for row in csv_reader:
-#         if not header:
-#             header = row
-#             continue
+                index = index + 1
         
-#         line = Line(header, row, workbook)
-#         line.fillSheet()
-#         line.putImage()
-#         line.convertFile()
-#         break
+        if out_format == 'pdf':
+            templater.save(path.join(out_dir, f'{path.basename(test_path)}.pdf'))
+        else:
+            with open(path.join(out_dir, f'{path.basename(test_path)}.html'), 'w') as output_file:
+                output_file.write(templater.template)
 
-    
+import sys, getopt
+
+if __name__ == '__main__':
+    input_pattern = 'test*'
+    output_dir = ''
+    path_to_lib = 'C:\\Program Files\\wkhtmltopdf\\bin\\wkhtmltopdf.exe'
+    out_format = 'pdf'
+
+    try:
+        opts, args = getopt.getopt(sys.argv[1:], 'i:o:l:f:', ['in=', 'out=', 'lib=', 'format='])
+    except getopt.GetoptError:
+        print('main.py -i <inputpattern> -o <outputdir>')
+        sys.exit(2)
+    for opt, arg in opts:
+        if opt in ('-i', '--in'):
+            input_pattern = arg
+        elif opt in ('-o', '--out'):
+            output_dir = arg
+        elif opt in ('-l', '--lib'):
+            path_to_lib = arg
+        elif opt in ('-f', '--format'):
+            out_format = arg
+
+    generatePDFs(input_pattern, output_dir, path_to_lib, out_format)
