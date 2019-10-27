@@ -25,5 +25,13 @@ class HTMLTemplater:
 
 
     def save(self, outpath):
-        pdfkit.from_string(self.template, outpath, configuration=self.config, css='./style.css')
+        options={
+            'page-size': 'Letter',
+            'margin-top': '0.0in',
+            'margin-right': '0.0in',
+            'margin-bottom': '0.0in',
+            'margin-left': '0.0in',
+            'no-outline': None
+        }
+        pdfkit.from_string(self.template, outpath, configuration=self.config, css='./style.css', options=options)
     

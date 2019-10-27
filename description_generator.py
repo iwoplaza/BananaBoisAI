@@ -13,9 +13,9 @@ class DescriptionGenerator:
             'looks fancy', 'is pretty functional', 'is very useful', 
             'is nice', 'seems nice', 
             'looks good', 'improves your social status', 'is an inspiration for your friends', 
-            'is making a difference', 'gives you a new perspective', 'has been around for longer than you think', 
-            'has a cool color', 'gives a new look to the room', 'makes your area bigger',
-            'never lets you down', 'will change your life', "is unique in it's design", 'is free'
+            'is making a difference', 'gives you a <strong>new perspective</strong>', 'has been around for longer than you think', 
+            'has a cool color', 'gives a new look to the room', 'makes your area <strong>bigger</strong>',
+            'never lets you down', 'will <strong>change your life</strong>', "is unique in it's design", 'is <strong>free</strong>'
         ]
 
         self.global_adjectives_neutral = [
@@ -138,7 +138,7 @@ class DescriptionGenerator:
             description = description + sentence
 
             index = index + 1
-        return description[2:]
+        return description[2:] + '.'
 
 if __name__ == '__main__':
     generator = DescriptionGenerator()

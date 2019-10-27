@@ -49,8 +49,6 @@
 body {
     margin: 0;
     background-color: #222;
-    overflow: auto;
-    min-height: 100%;
 }
 
 header {
