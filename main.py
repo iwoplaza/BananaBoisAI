@@ -24,6 +24,15 @@ from htmltemplater import HTMLTemplater
 from description_generator import DescriptionGenerator
 import pdfkit
 
+keyToName = {
+    'house': 'House',
+    'dining_room': 'Dining room',
+    'kitchen': 'Kitchen',
+    'bathroom': 'Bathroom',
+    'living_room': 'Living room',
+    'bedroom': 'Bedroom'
+}
+
 class Room:
     def __init__(self, index, room_type, image_path, json_data, templater):
         self.index = index
@@ -55,6 +64,13 @@ class Room:
         self.templater.replaceImage(f'picture-src_{self.index}', self.image_path)
 
 
+def presentTypesInHumanForm(types):
+    d = {}
+    for t in types:
+        d[t] = d[t] + 1 if t in d else 1
+    
+    return d
+
 def loadRoomFromJSON(json_path, index, room_type, image_path, templater):
     with open(json_path) as json_file:
         json_data = json.load(json_file)
@@ -78,8 +94,11 @@ def generatePDFs(glob_pattern, out_dir, path_to_lib, out_format = 'pdf'):
             summary = summary_file.read()
             data = [row.split(', ') for row in summary.splitlines()]
 
+            room_types = []
             index = 0
             for (image_filename, room_type) in data:
+                room_types.append(room_type)
+
                 json_filename = f'{image_filename}.json'
                 json_path = path.join(test_path, json_filename)
 
@@ -88,6 +107,16 @@ def generatePDFs(glob_pattern, out_dir, path_to_lib, out_format = 'pdf'):
                 room.fillSheet()
 
                 index = index + 1
+        
+        def presentTuple(entry):
+            item = entry[0]
+            amount = entry[1]
+            return f'{amount} x {keyToName[item]}' if amount > 1 else keyToName[item]
+
+        room_types = presentTypesInHumanForm(room_types)
+        templater.replace({
+            'room-types': ", ".join([presentTuple(entry) for entry in room_types.items()])
+        })
         
         if out_format == 'pdf':
             templater.save(path.join(out_dir, f'{path.basename(test_path)}.pdf'))
