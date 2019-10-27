@@ -18,6 +18,7 @@ pdfArray = []
 
 excludedTags = [
     'property',
+    'building',
     'bed frame',
     'bedroom',
     'kitchen',
@@ -27,6 +28,14 @@ excludedTags = [
     'palace',
     'dining room',
     'room'
+]
+
+quality_level = [
+    'Terrible',
+    'Bad',
+    'Okay',
+    'Good',
+    'Great!'
 ]
 
 class Room:
@@ -123,11 +132,11 @@ def generatePDFs(glob_pattern, out_dir, path_to_lib, out_format = 'pdf'):
         price = math.ceil(floor_area * 970 * finalScore)
         room_types = presentTypesInHumanForm(room_types)
         templater.replace({
-            'body-class': 'class="too-many-tiles"' if amount_of_rooms > 4 else '',
+            'body-class': 'class="too-many-tiles"' if amount_of_rooms > 5 else '',
             'room-types': ", ".join([presentTuple(entry) for entry in room_types.items()]),
             'price': price,
             'floor-area': floor_area,
-            'final-score': finalScore
+            'final-score': f'{round(finalScore * 100)}% {quality_level[round(finalScore * len(quality_level))]}'
         })
 
         if out_format == 'pdf':

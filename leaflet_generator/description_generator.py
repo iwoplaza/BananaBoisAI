@@ -17,7 +17,7 @@ class DescriptionGenerator:
 
         self.global_adjectives_neutral = [
             'is passable', 'looks fine', 'has neutral design', 'just standing here, I think..',
-            'is still funcional', 'is nothing spectacular', 'is nothing groundbreaking',
+            'is still functional', 'is nothing spectacular', 'is nothing groundbreaking',
             'could look better', 'has good placement'
         ]
 
