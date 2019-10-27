@@ -4,9 +4,24 @@
 
 #price {
     display: block;
+    position: absolute;
+    background-color: rgba(255, 197, 36, 0.8);
+    color: rgba(146, 3, 3, 0.7);
+    width: 200px;
+    height: 200px;
+    left: 700px;
+    top: 1050px;
+
+    -webkit-transform: rotate(20deg);
+}
+
+#price p{
     position: relative;
-    color: rgba(230, 36, 2, 0.7);
-    background-color: rgba(255, 208, 0, 0.8);
+    top: 50px;
+    left: 10px;
+    font-size: 24px;
+    font-weight: bold;
+    -webkit-transform: rotate(340deg);
 }
 
 .ing-logo {
