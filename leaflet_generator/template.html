@@ -7,7 +7,7 @@
         <title>Looking for an apartment, or a house?</title>
         <link rel="stylesheet" href="style.css">
     </head>
-    <body>
+    <body <!-- model-replace: body-class -->>
         <header>
             <span class="ing-logo"></span>
             <h1>Looking for an apartment, or a house?</h1>
@@ -17,9 +17,9 @@
                 <!-- model-replace: room_0 -->
             </article>
             <article class="details">
-                <p><span>Floor area:</span> <!-- model-replace: floor-area --> m<sup>2</sup></p>
-                <p><span>Types of rooms:</span> <!-- model-replace: room-types --> </p>
-                <p><span>State of the interior:</span> <!-- model-replace: final-score --> </p>
+                <p><span>Floor area:</span> <strong><!-- model-replace: floor-area --></strong> m<sup>2</sup></p>
+                <p><span>Types of rooms:</span> <strong><!-- model-replace: room-types --></strong> </p>
+                <p><span>State of the interior:</span> <strong><!-- model-replace: final-score --></strong> </p>
             </article>
             <article id="price"> 
                 <p><span>Price:</span> $<!-- model-replace: price --> </p>

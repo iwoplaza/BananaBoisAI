@@ -11,18 +11,23 @@ import math
 from PyPDF2 import PdfFileMerger
 from htmltemplater import HTMLTemplater
 from description_generator import DescriptionGenerator
+from intro_generator import IntroGenerator, typeToNameMap
 import pdfkit
 
 pdfArray = []
 
-keyToName = {
-    'house': 'House',
-    'dining_room': 'Dining room',
-    'kitchen': 'Kitchen',
-    'bathroom': 'Bathroom',
-    'living_room': 'Living room',
-    'bedroom': 'Bedroom'
-}
+excludedTags = [
+    'property',
+    'bed frame',
+    'bedroom',
+    'kitchen',
+    'house',
+    'home',
+    'real estate',
+    'palace',
+    'dining room',
+    'room'
+]
 
 class Room:
     def __init__(self, index, room_type, image_path, json_data, templater):
@@ -40,7 +45,11 @@ class Room:
     def fillSheet(self):
 
         # ''' , roomAverageScore '''
+        intro_generator = IntroGenerator()
         description_generator = DescriptionGenerator()
+
+        room_content = f'<strong>{intro_generator.generate(self.room_type, self.index)}</strong> '
+        room_content += description_generator.generate(self.json_data, excludedTags)
 
         self.templater.replace({
             f'room_{self.index}': f'''
@@ -50,7 +59,7 @@ class Room:
                 </section>
                 <!-- model-replace: room_{self.index + 1} -->
             ''',
-            f'description_{self.index}': description_generator.generate(self.json_data),
+            f'description_{self.index}': room_content,
             'tags': ', '.join(self.tags),
         })
 
@@ -74,6 +83,7 @@ def loadRoomFromJSON(json_path, index, room_type, image_path, templater):
 def generatePDFs(glob_pattern, out_dir, path_to_lib, out_format = 'pdf'):
     test_paths = glob(glob_pattern)
     config = pdfkit.configuration(wkhtmltopdf=path_to_lib)
+    output_file_paths = []
 
     for test_path in test_paths:
         summary_path = path.join(test_path, 'summary.txt')
@@ -83,11 +93,11 @@ def generatePDFs(glob_pattern, out_dir, path_to_lib, out_format = 'pdf'):
 
         templater = HTMLTemplater('template.html', config=config)
 
+        room_types = []
         with open(summary_path, 'r') as summary_file:
             summary = summary_file.read()
             data = [row.split(', ') for row in summary.splitlines()]
 
-            room_types = []
             index = 0
             avgscore = []
             for (image_filename, room_type) in data:
@@ -105,24 +115,30 @@ def generatePDFs(glob_pattern, out_dir, path_to_lib, out_format = 'pdf'):
         def presentTuple(entry):
             item = entry[0]
             amount = entry[1]
-            return f'{amount} x {keyToName[item]}' if amount > 1 else keyToName[item]
-        floor_area = len(room_types) * random.randint(8, 25)
+            return f'{amount} x {typeToNameMap[item]}' if amount > 1 else typeToNameMap[item]
+
+        amount_of_rooms = len(room_types)
+        floor_area = amount_of_rooms * random.randint(8, 25)
         finalScore = sum(avgscore) / len(avgscore)
         price = math.ceil(floor_area * 970 * finalScore)
         room_types = presentTypesInHumanForm(room_types)
         templater.replace({
+            'body-class': 'class="too-many-tiles"' if amount_of_rooms > 4 else '',
             'room-types': ", ".join([presentTuple(entry) for entry in room_types.items()]),
             'price': price,
             'floor-area': floor_area,
             'final-score': finalScore
         })
-        
-        if out_format == 'pdf':
-            templater.save(path.join(out_dir, f'{path.basename(test_path)}.pdf'))
 
+        if out_format == 'pdf':
+            out_path = path.join(out_dir, f'{path.basename(test_path)}.pdf')
+            output_file_paths.append(out_path)
+            templater.save(out_path)
         else:
             with open(path.join(out_dir, f'{path.basename(test_path)}.html'), 'w') as output_file:
                 output_file.write(templater.template)
+        
+    return output_file_paths
 
 import sys, getopt
 
@@ -147,17 +163,15 @@ if __name__ == '__main__':
         elif opt in ('-f', '--format'):
             out_format = arg
 
-    generatePDFs(input_pattern, output_dir, path_to_lib, out_format)
+    out_paths = generatePDFs(input_pattern, output_dir, path_to_lib, out_format)
     #merger = PdfFileMerger()
-    listpdf = glob(path.join(output_dir, 'test*.pdf') )
-    print(listpdf)
-    for pdf in listpdf:
+    for pdf in out_paths:
         pdfArray.append(pdf)
     merger = PdfFileMerger()
 
     for pdf in pdfArray:
         merger.append(pdf)
-    print(merger)
-    merger.write("result.pdf")
+    
+    merger.write(path.join(output_dir, 'result.pdf'))
     merger.close()
 

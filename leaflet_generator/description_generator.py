@@ -1,10 +1,6 @@
 import random
 
-def getRandomChoice(src):
-    return src[random.choice(range(len(src)))]
-
-def popRandomChoice(src):
-    return src.pop(random.choice(range(len(src))))
+from array_utils import popRandomChoice, getRandomChoice
 
 class DescriptionGenerator:
 
@@ -14,27 +10,25 @@ class DescriptionGenerator:
             'is nice', 'seems nice', 
             'looks good', 'improves your social status', 'is an inspiration for your friends', 
             'really makes a difference', 'gives you a <strong>new perspective</strong>', 'has been around for longer than you think', 
-            'has a cool color', 'gives a new look to the room', 'makes your area <strong>bigger</strong>',
+            'has a cool color', 'gives a new look to the room', 'is <strong>spacious</strong>',
             'never lets you down', 'will <strong>change your life</strong>', "is unique in it's design", 'is <strong>free</strong>',
-            'wil make you <strong>happier</strong>',  'will make you comeback with pleasure', 'is perfect designed'
+            'wil make you <strong>happier</strong>',  'will make you want to comeback with pleasure', 'is perfectly designed'
         ]
 
         self.global_adjectives_neutral = [
             'is passable', 'looks fine', 'has neutral design', 'just standing here, I think..',
-            'is still funcional', 'is nothing spectacular', 'is nothing  groundbreaking',
+            'is still funcional', 'is nothing spectacular', 'is nothing groundbreaking',
             'could look better', 'has good placement'
-
         ]
 
         self.global_adjectives_negative = [
             'is underwhelming', 'has seen better days', 'is barely holding form',
-            '.. we really do not know what it is doing here', 'is very neglecte',
+            '.. we really do not know what it is doing here', 'is very neglected',
             'belongs to a museum'
-
         ]
 
         self.adjectives_positive = {
-            'bed':          [ 'is very comfortable', 'could make your mornings comfortable' ],
+            'bed':          [ 'is very comfortable', 'could make your mornings more comfortable' ],
             'chair':        [ "was approved by the president of the United States" ],
             'coffee table': [ "makes your coffee better" ],
             'fireplace' :   [ "warms your heart" ],
@@ -131,15 +125,18 @@ class DescriptionGenerator:
             pool = global_adjectives if random.random() <= weight else adjectives[noun]
             return popRandomChoice(pool)
 
-    def generate(self, topics):
+    def generate(self, topics, excludedTags):
         random.shuffle(topics)
 
         description = ''
         index = 0
         for (topic, score) in topics:
+            topic = topic.lower()
+            if topic in excludedTags:
+                continue
+
             prefix = self.getPrefix(index > 0)
 
-            topic = topic.lower()
             sentence = f'{prefix} {self.labels[topic] if topic in self.labels else topic} {self.getAdjective(topic, score)}'
 
             description = description + sentence
@@ -149,4 +146,4 @@ class DescriptionGenerator:
 
 if __name__ == '__main__':
     generator = DescriptionGenerator()
-    print(generator.generate([ 'bed', 'chair', 'table' ]))
+    print(generator.generate([ 'bed', 'chair', 'table' ], []))
